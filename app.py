@@ -9,20 +9,60 @@ from modules.auditor import InvoiceAuditor
 from modules.parser import InvoiceParser
 from modules.pdf_generator import generate_audit_pdf
 import plotly.express as px
+import plotly.graph_objects as go
 # --- CONFIG ---
 st.set_page_config(page_title="Breer Audit Cockpit", page_icon="🛡️", layout="wide", initial_sidebar_state="collapsed")
+# --- MODERN CSS ---
 st.markdown("""
 <style>
-    .stApp { background-color: #F4F6F9; font-family: "Segoe UI", sans-serif; }
-    .header-container { background-color: #FFFFFF; padding: 1.5rem 2rem; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.03); margin-bottom: 25px; display: flex; align-items: center; gap: 25px; border-left: 5px solid #004e92; }
-    .header-logo img { height: 70px; width: auto; }
-    .header-text h1 { color: #002B5B; font-size: 2.2rem; font-weight: 700; margin: 0; line-height: 1.1; }
-    .header-text p { color: #666; font-size: 1.0rem; margin: 0; margin-top: 4px; }
-    .stButton>button { background: #004e92; color: white; border-radius: 6px; border: none; width: 100%; }
-    .stButton>button:hover { background: #003366; color: white; }
-    div[data-testid="stMetric"] { background-color: #FFFFFF; padding: 15px; border-radius: 8px; border-left: 4px solid #004e92; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
-    .stFileUploader { padding: 15px; border-radius: 8px; background: #FFFFFF; border: 1px dashed #ced4da; }
-    .stCaption { color: #666; font-size: 0.85rem; margin-bottom: 5px; font-weight: 600; }
+    @import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap");
+    .stApp { background-color: #F8FAFC; font-family: "Inter", sans-serif; }
+    
+    /* Header */
+    .header-container {
+        background: linear-gradient(90deg, #FFFFFF 0%, #F1F5F9 100%);
+        padding: 1.5rem 2rem;
+        border-radius: 16px;
+        box-shadow: 0 4px 20px rgba(0, 78, 146, 0.08);
+        margin-bottom: 30px;
+        display: flex; align-items: center; gap: 30px;
+        border-left: 6px solid #004e92;
+    }
+    .header-text h1 { color: #002B5B; font-size: 2.4rem; font-weight: 800; margin: 0; letter-spacing: -0.5px; }
+    .header-text p { color: #64748B; font-size: 1.1rem; margin: 4px 0 0 0; font-weight: 500; }
+    
+    /* Step Cards */
+    .upload-card {
+        background-color: white;
+        padding: 20px;
+        border-radius: 12px;
+        border: 1px solid #E2E8F0;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .upload-card:hover { transform: translateY(-2px); box-shadow: 0 8px 16px rgba(0,0,0,0.06); border-color: #004e92; }
+    
+    /* Buttons */
+    .stButton>button {
+        background: linear-gradient(135deg, #004e92 0%, #003366 100%);
+        color: white; border-radius: 10px; border: none; padding: 0.8rem 2rem;
+        font-weight: 600; letter-spacing: 0.5px; box-shadow: 0 4px 12px rgba(0, 78, 146, 0.3);
+        width: 100%; transition: all 0.3s ease;
+    }
+    .stButton>button:hover { box-shadow: 0 6px 18px rgba(0, 78, 146, 0.5); transform: translateY(-1px); }
+    
+    /* Metric Cards */
+    div[data-testid="stMetric"] {
+        background-color: #FFFFFF;
+        padding: 20px;
+        border-radius: 12px;
+        border: 1px solid #E2E8F0;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.03);
+    }
+    div[data-testid="stMetricValue"] { color: #004e92; font-weight: 800; }
+    
+    /* Footer */
+    .footer { text-align: center; color: #94A3B8; font-size: 0.8rem; margin-top: 50px; border-top: 1px solid #E2E8F0; padding-top: 20px; }
 </style>
 """, unsafe_allow_html=True)
 from pathlib import Path
@@ -33,11 +73,11 @@ logo_b64 = "PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0idXRmLTgiPz4KPCEtLSBHZW5lcmF0
 st.markdown(f"""
     <div class="header-container">
         <div class="header-logo">
-            <img src="data:image/svg+xml;base64,{logo_b64}" alt="Breer Logo">
+            <img src="data:image/svg+xml;base64,{logo_b64}" style="height: 75px; width: auto;">
         </div>
         <div class="header-text">
             <h1>Audit Cockpit</h1>
-            <p>Automatisierte Rechnungs- & Lieferscheinprüfung</p>
+            <p>Intelligente Rechnungsprüfung & Diskrepanz-Analyse</p>
         </div>
     </div>
 """, unsafe_allow_html=True)
@@ -47,36 +87,40 @@ azure_endpoint = os.getenv("AZURE_OPENAI_ENDPOINT")
 if not azure_api_key or not azure_endpoint:
     st.error("⚠️ API Credentials fehlen.")
     st.stop()
-# --- UPLOAD ---
-st.markdown("### 📂 Dokumente")
+# --- UPLOAD AREA ---
+st.markdown("### 📂 Dokumenten-Eingang")
 cols = st.columns(3)
-with cols[0]: 
-    st.caption("📄 Die zu prüfende Rechnung (Lieferant)")
-    uploaded_invoice = st.file_uploader("Rechnung", type=["pdf"], key="inv", label_visibility="collapsed")
-with cols[1]: 
-    st.caption("📦 Zugehörige Lieferscheine (Scan/PDF)")
-    uploaded_delivery = st.file_uploader("Lieferscheine (Optional)", type=["pdf"], key="del", accept_multiple_files=True, label_visibility="collapsed")
-with cols[2]: 
-    st.caption("💰 Vereinbarte Preise (Excel oder PDF)")
-    uploaded_pricelist = st.file_uploader("Preisliste (Optional)", type=["xlsx", "pdf"], key="price", accept_multiple_files=True, label_visibility="collapsed")
-st.markdown("---")
-b1, b2, b3 = st.columns([3, 1, 1])
-with b3: start_btn = st.button("Starten ➤", type="primary", use_container_width=True, disabled=not uploaded_invoice)
+with cols[0]:
+    with st.container():
+        st.markdown("**1. Rechnung** <span style='color:#004e92'>●</span>", unsafe_allow_html=True)
+        st.caption("Das Original-Dokument vom Lieferanten.")
+        uploaded_invoice = st.file_uploader("Rechnung", type=["pdf"], key="inv", label_visibility="collapsed")
+with cols[1]:
+    with st.container():
+        st.markdown("**2. Lieferscheine** <span style='color:#64748B'>●</span>", unsafe_allow_html=True)
+        st.caption("Optional: Für den Mengenabgleich.")
+        uploaded_delivery = st.file_uploader("Lieferscheine", type=["pdf"], key="del", accept_multiple_files=True, label_visibility="collapsed")
+with cols[2]:
+    with st.container():
+        st.markdown("**3. Preisliste** <span style='color:#64748B'>●</span>", unsafe_allow_html=True)
+        st.caption("Optional: Für den Preisabgleich.")
+        uploaded_pricelist = st.file_uploader("Preisliste", type=["xlsx", "pdf"], key="price", accept_multiple_files=True, label_visibility="collapsed")
+st.markdown("<br>", unsafe_allow_html=True)
+b1, b2, b3 = st.columns([1, 2, 1])
+with b2: start_btn = st.button("ANALYSE STARTEN", type="primary", use_container_width=True, disabled=not uploaded_invoice)
 # --- LOGIC ---
 if "audit_results" not in st.session_state: st.session_state.audit_results = None
 if "audit_total_loss" not in st.session_state: st.session_state.audit_total_loss = 0.0
 if start_btn:
     parser = InvoiceParser()
-    with st.status("🔄 Analyse läuft...", expanded=True) as status:
-        st.write("📑 Lese Rechnung...")
+    with st.status("🔍 Deep Scan läuft...", expanded=True) as status:
+        st.write("📑 Analysiere Rechnungsdaten...")
         df_invoice = parser.parse_pdf(uploaded_invoice)
         delivery_text = ""
         if uploaded_delivery:
-            st.write("📦 Lese Lieferscheine...")
+            st.write("📦 Indexiere Lieferscheine...")
             for f in uploaded_delivery: delivery_text += extract_text_from_pdf(f)
-        else:
-            st.write("ℹ️ Keine Lieferscheine - überspringe Mengenabgleich.")
-        st.write("⚖️ Prüfe Daten...")
+        st.write("⚖️ Führe Cross-Check durch...")
         results = []
         for index, row in df_invoice.iterrows():
             ls_nr = str(row.get("Rechnung LS-Nr", ""))
@@ -94,12 +138,15 @@ if start_btn:
             row["Handlung"] = status
             results.append(row)
         st.session_state.audit_results = pd.DataFrame(results)
-        st.success("✅ Prüfung erfolgreich abgeschlossen!")
+        st.success("Analyse abgeschlossen.")
 # --- DASHBOARD ---
 if st.session_state.audit_results is not None:
     df = st.session_state.audit_results
-    st.markdown("<br>### 📊 Prüfergebnis", unsafe_allow_html=True)
+    st.markdown("---, unsafe_allow_html=True")
+    st.markdown("### 📊 Dashboard", unsafe_allow_html=True)
+    
     err_count = len(df[df["Handlung"].str.contains("Kein|fehlt", case=False)])
+    ok_count = len(df) - err_count
     risk = 0.0
     try:
         df_err = df[df["Handlung"].str.contains("Kein Lieferschein", case=False)].copy()
@@ -108,17 +155,35 @@ if st.session_state.audit_results is not None:
             risk = df_err["V"].sum()
         st.session_state.audit_total_loss = risk
     except: risk = 0.0
-    m1, m2, m3 = st.columns(3)
-    m1.metric("Positionen", len(df))
-    m2.metric("Abweichungen", err_count, delta_color="inverse")
-    m3.metric("Risiko (€)", f"{risk:,.2f}", delta_color="inverse")
-    st.markdown("#### Detailübersicht")
+    # --- VISUALS ---
+    dc1, dc2 = st.columns([1, 2])
+    with dc1:
+        # Donut Chart
+        labels = ["OK", "Fehler/Warnung"]
+        values = [ok_count, err_count]
+        colors = ["#2ecc71", "#e74c3c"] # Green, Red
+        fig = go.Figure(data=[go.Pie(labels=labels, values=values, hole=.6, marker=dict(colors=colors))])
+        fig.update_layout(showlegend=False, margin=dict(t=0, b=0, l=0, r=0), height=140)
+        fig.add_annotation(text=f"{len(df)}", showarrow=False, font=dict(size=20, color="#004e92"), yshift=10)
+        fig.add_annotation(text="Total", showarrow=False, font=dict(size=10, color="#666"), yshift=-10)
+        st.plotly_chart(fig, use_container_width=True)
+    
+    with dc2:
+        # Metrics
+        m1, m2, m3 = st.columns(3)
+        m1.metric("Gesamt-Positionen", len(df))
+        m2.metric("Kritische Fehler", err_count, delta="Action" if err_count > 0 else "Clean", delta_color="inverse")
+        m3.metric("Risiko-Wert", f"€ {risk:,.2f}", delta="Verlust" if risk > 0 else None, delta_color="inverse")
+    st.markdown("#### 📝 Detail-Liste")
     st.dataframe(df, use_container_width=True, hide_index=True)
+    
     st.markdown("---")
     e1, e2 = st.columns(2)
     with e1:
         pdf_bytes = generate_audit_pdf(df, st.session_state.audit_total_loss)
-        st.download_button("📄 PDF Report", pdf_bytes, "Audit_Report.pdf", "application/pdf", use_container_width=True)
+        st.download_button("📄 Prüfbericht (PDF)", pdf_bytes, "Audit_Report.pdf", "application/pdf", use_container_width=True)
     with e2:
         csv = df.to_csv(index=False, sep=";").encode("utf-8")
-        st.download_button("📥 Excel/CSV", csv, "audit.csv", "text/csv", use_container_width=True)
+        st.download_button("📥 Rohdaten (CSV)", csv, "audit.csv", "text/csv", use_container_width=True)
+# --- FOOTER ---
+st.markdown("<div class='footer'>Powered by <b>Breer GmbH</b> • AI Audit Solutions</div>", unsafe_allow_html=True)
