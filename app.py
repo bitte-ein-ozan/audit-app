@@ -19,80 +19,86 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# MODERN CSS INJECTION
+# MODERN CSS INJECTION (Breer Identity)
 st.markdown("""
 <style>
-    /* Global Background */
+    /* Global Background - Very light grey-blue */
     .stApp {
-        background-color: #F8F9FB;
-        font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+        background-color: #F4F6F9;
+        font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
     }
     
-    /* Header Area styling to align Logo and Text */
+    /* Header Area */
     .header-container {
+        background-color: white;
+        padding: 1.5rem 2rem;
+        border-radius: 12px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        margin-bottom: 2rem;
         display: flex;
         align-items: center;
-        padding-bottom: 2rem;
-        border-bottom: 1px solid #E0E0E0;
-        margin-bottom: 2rem;
+        border-bottom: 3px solid #004e92; /* Breer Accent */
     }
     
-    .header-title {
-        color: #1E3D59; /* Breer Blue */
-        font-size: 2.5rem;
+    h1 {
+        color: #002B5B; /* Deep Navy */
+        font-family: 'Helvetica Neue', sans-serif;
         font-weight: 700;
-        margin: 0;
-        padding-left: 15px;
-        line-height: 1.2;
+        margin: 0 !important;
+        padding: 0 !important;
     }
     
-    .header-subtitle {
-        color: #666;
-        font-size: 1.1rem;
-        font-weight: 400;
-        margin-top: 5px;
-        padding-left: 15px;
+    h3, h4, h5 {
+        color: #002B5B;
     }
 
-    /* Card Styling for Sections */
-    .card-container {
+    /* Cards */
+    div.stContainer {
         background-color: white;
-        padding: 2rem;
         border-radius: 12px;
-        box-shadow: 0 4px 20px rgba(0,0,0,0.05);
-        margin-bottom: 2rem;
+        padding: 20px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+        margin-bottom: 20px;
+    }
+
+    /* Primary Button (The Breer Blue) */
+    .stButton>button {
+        background: #004e92;
+        color: white;
+        font-weight: 600;
+        border-radius: 6px;
+        border: none;
+        padding: 0.6rem 1.2rem;
+        transition: background 0.2s;
+    }
+    .stButton>button:hover {
+        background: #003366;
+        color: white;
     }
 
     /* Metrics Styling */
     div[data-testid="stMetric"] {
-        background-color: white;
+        background-color: #FFFFFF;
         padding: 15px;
         border-radius: 8px;
-        border: 1px solid #E0E0E0;
-        box-shadow: 0 2px 5px rgba(0,0,0,0.03);
+        border-left: 4px solid #004e92;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    }
+    div[data-testid="stMetricLabel"] {
+        color: #666;
+        font-size: 0.9rem;
+    }
+    div[data-testid="stMetricValue"] {
+        color: #002B5B;
+        font-weight: 700;
     }
 
-    /* Button Styling */
-    .stButton>button {
-        background: linear-gradient(135deg, #1E3D59 0%, #162E44 100%);
-        color: white;
-        font-weight: 600;
-        border: none;
+    /* File Uploader */
+    .stFileUploader {
+        padding: 10px;
         border-radius: 8px;
-        padding: 0.75rem 1.5rem;
-        letter-spacing: 0.5px;
-        transition: all 0.3s ease;
-        width: 100%;
-    }
-    .stButton>button:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 8px 20px rgba(30, 61, 89, 0.3);
-    }
-
-    /* Custom File Uploader Label */
-    .stFileUploader label {
-        font-weight: bold;
-        color: #1E3D59;
+        background: #f8f9fa;
+        border: 1px dashed #ced4da;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -103,226 +109,182 @@ env_path = Path(__file__).parent / ".env"
 load_dotenv(dotenv_path=env_path, override=True)
 
 # -----------------------------------------------------------------------------
-# 2. HEADER SECTION (Clean & Aligned)
+# 2. HEADER SECTION
 # -----------------------------------------------------------------------------
 
-# We use a container to visually group the header
+# Use a clean container for the header
 with st.container():
-    # Columns for Logo (left) and Title (right)
-    # Tighter ratio [1, 5] ensures proximity
-    col_logo, col_title = st.columns([0.8, 6])
+    # Grid Layout: Logo | Title
+    c1, c2 = st.columns([1, 6])
     
-    with col_logo:
-        logo_path = "assets/breer_logo.svg" # Prefer SVG for web
+    with c1:
+        # Load the blue logo
+        logo_path = "assets/logo.svg" 
         if not os.path.exists(logo_path):
-             # Try absolute path or fallback to png/dark
-             logo_path = "assets/logo.svg"
+             logo_path = "assets/breer_logo.svg" # Fallback
         
         if os.path.exists(logo_path):
-            st.image(logo_path, width=110) # Elegant size
+            st.image(logo_path, width=130)
         else:
-            st.write("🛡️")
+            st.markdown("## 🛡️") # Emoji fallback
 
-    with col_title:
-        # Custom HTML Title for perfect control
+    with c2:
         st.markdown("""
-            <div style='margin-top: 10px;'>
-                <h1 style='margin:0; padding:0; font-size: 2.2rem; color:#1E3D59;'>Live Audit Cockpit</h1>
-                <p style='margin:0; padding:0; color:#888; font-size: 1rem;'>
-                    KI-gestützte Rechnungsprüfung & Lieferschein-Abgleich
+            <div style='padding-top: 10px;'>
+                <h1 style='font-size: 2.4rem;'>Audit Cockpit</h1>
+                <p style='color: #666; font-size: 1.1rem; margin-top: 5px;'>
+                    Automatisierte Rechnungs- & Lieferscheinprüfung
                 </p>
             </div>
         """, unsafe_allow_html=True)
 
-st.markdown("<div style='height: 20px;'></div>", unsafe_allow_html=True) # Spacer
+st.markdown("<div style='height: 30px;'></div>", unsafe_allow_html=True)
 
 # API Check
 azure_api_key = os.getenv("AZURE_OPENAI_API_KEY")
 azure_endpoint = os.getenv("AZURE_OPENAI_ENDPOINT")
 if not azure_api_key or not azure_endpoint:
-    st.error("⚠️ Systemfehler: Azure API Credentials fehlen in der Konfiguration.")
+    st.error("⚠️ Konfigurationsfehler: API Credentials fehlen.")
     st.stop()
 
 # -----------------------------------------------------------------------------
-# 3. UPLOAD AREA (The "White Card")
+# 3. WORKSPACE (Uploads)
 # -----------------------------------------------------------------------------
 
-# Container wrapper for styling (conceptually, streamlits container doesn't add div classes easily, 
-# so we rely on the clean layout)
+# Create a visual 'Card' for uploads
+with st.container():
+    st.markdown("### 📂 Dokumente hochladen")
+    
+    cols = st.columns(3)
+    
+    with cols[0]:
+        st.markdown("**1. Rechnung** (PDF)")
+        uploaded_invoice = st.file_uploader("Rechnung", type=["pdf"], key="inv", label_visibility="collapsed")
+    
+    with cols[1]:
+        st.markdown("**2. Lieferscheine** (PDF)")
+        uploaded_delivery = st.file_uploader("Lieferscheine", type=["pdf"], key="del", accept_multiple_files=True, label_visibility="collapsed")
+    
+    with cols[2]:
+        st.markdown("**3. Preisliste** (Excel)")
+        uploaded_pricelist = st.file_uploader("Preisliste", type=["xlsx"], key="price", accept_multiple_files=True, label_visibility="collapsed")
 
-st.markdown("### 📂 Dokumentenzentrale")
-st.markdown("Laden Sie die Belege hoch, um den automatischen Abgleich zu starten.")
-
-upload_cols = st.columns(3)
-
-with upload_cols[0]:
-    st.info("**1. Rechnung** (PDF)")
-    uploaded_invoice = st.file_uploader("Rechnung", type=["pdf"], key="inv", label_visibility="collapsed")
-
-with upload_cols[1]:
-    st.info("**2. Lieferscheine** (PDF)")
-    uploaded_delivery = st.file_uploader("Lieferscheine", type=["pdf"], key="del", accept_multiple_files=True, label_visibility="collapsed")
-
-with upload_cols[2]:
-    st.info("**3. Preisliste** (Excel)")
-    uploaded_pricelist = st.file_uploader("Preisliste", type=["xlsx"], key="price", accept_multiple_files=True, label_visibility="collapsed")
-
-# Settings Expander (Subtle)
-with st.expander("⚙️ Erweiterte Analyse-Einstellungen", expanded=False):
-    c_set1, c_set2 = st.columns([1, 2])
-    with c_set1:
-        azure_deployment_name = st.text_input("Modell-Deployment:", value="gpt-5.2-")
-    with c_set2:
-        custom_prompt = st.text_area("Fokus-Anweisung:", value="Prüfe auf Preisdifferenzen und fehlende Mengen. Markiere Abweichungen > 0.01 EUR.", height=35)
+    # Action Bar
+    st.markdown("---")
+    
+    # Align button right
+    b1, b2, b3 = st.columns([3, 1, 1])
+    with b3:
+        start_btn = st.button("Prüfung starten ➤", type="primary", use_container_width=True, disabled=not uploaded_invoice)
 
 # -----------------------------------------------------------------------------
-# 4. ACTION
+# 4. LOGIC
 # -----------------------------------------------------------------------------
-st.markdown("---")
-col_btn_1, col_btn_2, col_btn_3 = st.columns([1, 2, 1])
-with col_btn_2:
-    start_btn = st.button("🚀 PRÜFUNG STARTEN", type="primary", use_container_width=True, disabled=not (uploaded_invoice))
 
-# Session State
+# Initialize Session
 if "audit_results" not in st.session_state:
     st.session_state.audit_results = None
 if "audit_total_loss" not in st.session_state:
     st.session_state.audit_total_loss = 0.0
 
-# -----------------------------------------------------------------------------
-# 5. LOGIC & PROCESSING
-# -----------------------------------------------------------------------------
 if start_btn:
     parser = InvoiceParser()
     
-    # Animated Status Container
-    with st.status("🔍 Deep Scan läuft... Bitte warten.", expanded=True) as status:
+    # Progress UI
+    progress_placeholder = st.empty()
+    with progress_placeholder.container():
+        st.info("🔄 Analyse läuft... Dokumente werden verarbeitet.")
         
-        # A) Invoice
-        status.write("📑 Extrahiere Rechnungsdaten...")
+        # 1. Invoice
         df_invoice = parser.parse_pdf(uploaded_invoice)
-        # Fallback if empty
         if df_invoice.empty:
-            status.update(label="⚠️ Fehler: Rechnung konnte nicht gelesen werden.", state="error")
+            st.error("Rechnung konnte nicht gelesen werden.")
             st.stop()
             
-        status.write(f"   ✅ {len(df_invoice)} Positionen erkannt.")
-
-        # B) Delivery Notes
-        status.write("📦 Analysiere Lieferscheine...")
+        # 2. Delivery
         delivery_text = ""
         if uploaded_delivery:
-            for del_file in uploaded_delivery:
-                text = extract_text_from_pdf(del_file)
-                delivery_text += text
-            status.write("   ✅ Lieferschein-Daten indexiert.")
-        else:
-            status.write("   ℹ️ Keine Lieferscheine - Nur Plausibilitätsprüfung.")
-
-        # C) Matching Logic (Deterministic + Fast)
-        status.write("⚖️ Führe Abgleich durch...")
+            for f in uploaded_delivery:
+                delivery_text += extract_text_from_pdf(f)
+        
+        # 3. Match
         results = []
         for index, row in df_invoice.iterrows():
             ls_nr = str(row.get("Rechnung LS-Nr", ""))
             art_nr = str(row.get("Artikel-Nr", ""))
             
-            # Logic
-            if ls_nr == "UNKNOWN" or ls_nr == "":
-                action = "⚠️ LS-Nr fehlt/unlesbar"
+            status = "✅ OK"
+            if not ls_nr or ls_nr == "UNKNOWN":
+                status = "⚠️ LS-Nr fehlt"
             elif uploaded_delivery and ls_nr not in delivery_text:
-                action = "❌ FEHLT: Kein Lieferschein"
+                status = "❌ Kein Lieferschein"
             elif uploaded_delivery and art_nr not in delivery_text:
-                action = "❓ WARNUNG: Artikel nicht auf LS"
-            else:
-                action = "✅ OK"
+                status = "❓ Artikel fehlt"
             
-            # Zero check
             try:
                 if float(row.get("Menge", 0).replace(',','.')) == 0:
-                    action = "ℹ️ Info (Menge 0)"
+                    status = "ℹ️ Menge 0"
             except: pass
 
-            row["Handlung"] = action
+            row["Handlung"] = status
             results.append(row)
         
-        df_results = pd.DataFrame(results)
-        st.session_state.audit_results = df_results
-        
-        status.update(label="✅ Prüfung erfolgreich abgeschlossen!", state="complete", expanded=False)
+        st.session_state.audit_results = pd.DataFrame(results)
+        st.success("Fertig!")
+        progress_placeholder.empty() # Remove progress bar
 
 # -----------------------------------------------------------------------------
-# 6. RESULTS DASHBOARD
+# 5. DASHBOARD (Results)
 # -----------------------------------------------------------------------------
+
 if st.session_state.audit_results is not None:
     df = st.session_state.audit_results
     
-    st.markdown("<h3 style='color:#1E3D59; margin-top:2rem;'>📊 Analyse-Report</h3>", unsafe_allow_html=True)
+    st.markdown("<br>", unsafe_allow_html=True)
+    st.markdown("### 📊 Prüfergebnis")
 
-    # 6a. KPI CARDS
-    # Calculate Metrics
-    count_total = len(df)
-    count_error = len(df[df["Handlung"].str.contains("FEHLT|NICHT", case=False, na=False)])
+    # Metrics
+    err_count = len(df[df["Handlung"].str.contains("Kein|fehlt", case=False)])
     
-    # Calculate Value Risk
-    total_risk = 0.0
-    df_risks = df[df["Handlung"].str.contains("FEHLT|NICHT", case=False, na=False)].copy()
-    if not df_risks.empty:
-        def parse_curr(x):
-            try: return float(str(x).replace('.','').replace(',','.').strip())
-            except: return 0.0
-        df_risks['Value'] = df_risks['Preis_Gesamt'].apply(parse_curr)
-        total_risk = df_risks['Value'].sum()
-        st.session_state.audit_total_loss = total_risk
+    # Risk Calc
+    risk = 0.0
+    try:
+        df_err = df[df["Handlung"].str.contains("Kein|fehlt", case=False)].copy()
+        df_err['V'] = df_err['Preis_Gesamt'].astype(str).str.replace('.','').str.replace(',','.').astype(float)
+        risk = df_err['V'].sum()
+        st.session_state.audit_total_loss = risk
+    except: pass
 
-    kpi1, kpi2, kpi3 = st.columns(3)
-    kpi1.metric("Geprüfte Positionen", count_total, border=True)
-    kpi2.metric("Kritische Fehler", count_error, delta="Action needed" if count_error > 0 else "Clean", delta_color="inverse", border=True)
-    kpi3.metric("Finanzielles Risiko", f"€ {total_risk:,.2f}", delta="Potenzial" if total_risk > 0 else None, delta_color="inverse", border=True)
+    m1, m2, m3 = st.columns(3)
+    m1.metric("Positionen", len(df))
+    m2.metric("Abweichungen", err_count, delta_color="inverse")
+    m3.metric("Risiko (€)", f"{risk:,.2f}", delta_color="inverse")
 
-    # 6b. MAIN TABLE WITH HIGHLIGHTS
-    st.markdown("#### 📝 Detail-Ansicht")
-    
-    # Configure Columns for nice badges
+    # Table
+    st.markdown("#### Detailübersicht")
     st.dataframe(
         df,
         use_container_width=True,
         column_config={
             "Handlung": st.column_config.TextColumn(
                 "Status",
-                help="Ergebnis der KI-Prüfung",
-                width="medium",
+                width="small",
+                help="Prüfergebnis"
             ),
-            "Preis_Gesamt": st.column_config.NumberColumn(
-                "Preis (€)",
-                format="%.2f €"
-            ),
+            "Preis_Gesamt": st.column_config.NumberColumn("Preis (€)", format="%.2f")
         },
         hide_index=True
     )
 
-    # 6c. DOWNLOADS (Side by Side)
+    # Export
     st.markdown("---")
-    d1, d2 = st.columns(2)
+    e1, e2 = st.columns(2)
     
-    with d1:
-        # PDF Generation
+    with e1:
         pdf_bytes = generate_audit_pdf(df, st.session_state.audit_total_loss)
-        st.download_button(
-            label="📄 Offiziellen Prüfbericht (PDF)",
-            data=pdf_bytes,
-            file_name="Breer_Audit_Report.pdf",
-            mime="application/pdf",
-            use_container_width=True
-        )
+        st.download_button("📄 PDF Report", pdf_bytes, "Audit_Report.pdf", "application/pdf", use_container_width=True)
     
-    with d2:
-        # CSV Generation
-        csv_bytes = df.to_csv(index=False, sep=";").encode('utf-8')
-        st.download_button(
-            label="📊 Rohdaten Export (Excel/CSV)",
-            data=csv_bytes,
-            file_name="audit_data.csv",
-            mime="text/csv",
-            use_container_width=True
-        )
+    with e2:
+        csv = df.to_csv(index=False, sep=";").encode('utf-8')
+        st.download_button("📥 Excel/CSV", csv, "audit.csv", "text/csv", use_container_width=True)
 
