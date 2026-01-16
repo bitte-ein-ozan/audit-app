@@ -10,8 +10,6 @@ from modules.pdf_generator import generate_audit_pdf
 import plotly.express as px
 
 # Page Configuration
-
-# Page Configuration
 st.set_page_config(
     page_title="AI Rechnungsprüfer",
     page_icon="🛡️",
@@ -54,11 +52,25 @@ st.markdown("""
 
 # Load environment variables
 from pathlib import Path
-env_path = Path(__file__).parent / '.env'
+env_path = Path(__file__).parent / ".env"
 load_dotenv(dotenv_path=env_path, override=True)
 
-# --- HEADER ---
-st.title("🛡️ Live AI Audit-Cockpit")
+# --- HEADER WITH LOGO ---
+c_head1, c_head2 = st.columns([1, 5])
+with c_head1:
+    logo_path = "assets/breer_logo.svg"
+    if not os.path.exists(logo_path):
+        # Try finding relative to current file if started differently
+        logo_path = os.path.join(os.path.dirname(__file__), "assets/breer_logo.svg")
+    
+    if os.path.exists(logo_path):
+        st.image(logo_path, width=150)
+    else:
+        st.write("🛡️") 
+
+with c_head2:
+    st.title("🛡️ Live AI Audit-Cockpit")
+
 st.markdown("<h4 style='text-align: center; color: #555;'>Intelligente Rechnungsprüfung & Diskrepanz-Analyse</h4>", unsafe_allow_html=True)
 st.markdown("---")
 
@@ -81,13 +93,13 @@ with st.container():
 
     with c1:
         st.markdown("**1. Rechnung**")
-        uploaded_invoice = st.file_uploader("Rechnung hochladen (PDF)", type=['pdf'], key="inv")
+        uploaded_invoice = st.file_uploader("Rechnung hochladen (PDF)", type=["pdf"], key="inv")
     with c2:
         st.markdown("**2. Lieferscheine**")
-        uploaded_delivery = st.file_uploader("Lieferscheine hochladen (PDF)", type=['pdf'], key="del", accept_multiple_files=True)
+        uploaded_delivery = st.file_uploader("Lieferscheine hochladen (PDF)", type=["pdf"], key="del", accept_multiple_files=True)
     with c3:
         st.markdown("**3. Preisliste**")
-        uploaded_pricelist = st.file_uploader("Preisliste hochladen (Excel)", type=['xlsx'], key="price", accept_multiple_files=True)
+        uploaded_pricelist = st.file_uploader("Preisliste hochladen (Excel)", type=["xlsx"], key="price", accept_multiple_files=True)
 
 # --- ADVANCED SETTINGS (EXPANDER) ---
 st.markdown(" ")
@@ -111,9 +123,9 @@ with c_act2:
     run_audit = st.button("🚀 JETZT PRÜFUNG STARTEN", type="primary", use_container_width=True, disabled=not (uploaded_invoice and uploaded_pricelist))
 
 # Initialize Session State
-if 'audit_results' not in st.session_state:
+if "audit_results" not in st.session_state:
     st.session_state.audit_results = None
-if 'audit_total_loss' not in st.session_state:
+if "audit_total_loss" not in st.session_state:
     st.session_state.audit_total_loss = 0.0
 
 if run_audit:
@@ -150,8 +162,8 @@ if run_audit:
         # LOGIC: Check Delivery
         results = []
         for index, row in df_invoice.iterrows():
-            ls_nr = str(row['Rechnung LS-Nr'])
-            art_nr = str(row['Artikel-Nr'])
+            ls_nr = str(row["Rechnung LS-Nr"])
+            art_nr = str(row["Artikel-Nr"])
             
             # Check 1: LS Number
             if ls_nr == "UNKNOWN":
@@ -167,10 +179,10 @@ if run_audit:
                      action = "❓ ACHTUNG: Artikel fehlt auf LS"
             
             # Check 3: Zero Quantity (Sub-items)
-            if row['Menge'] == "0":
+            if row["Menge"] == "0":
                  action = "ℹ️ Info-Position (Menge 0)"
 
-            row['Handlung'] = action
+            row["Handlung"] = action
             results.append(row)
         
         df_results = pd.DataFrame(results)
@@ -188,8 +200,8 @@ if st.session_state.audit_results is not None:
 
     # Dashboard Metrics
     total_items = len(df_results)
-    missing_ls = len(df_results[df_results['Handlung'].str.contains("Kein Lieferschein")])
-    missing_art = len(df_results[df_results['Handlung'].str.contains("Artikel fehlt")])
+    missing_ls = len(df_results[df_results["Handlung"].str.contains("Kein Lieferschein")])
+    missing_art = len(df_results[df_results["Handlung"].str.contains("Artikel fehlt")])
     
     c1, c2, c3 = st.columns(3)
     c1.metric("Gesamtpositionen", total_items)
@@ -197,7 +209,7 @@ if st.session_state.audit_results is not None:
     c3.metric("Artikel nicht auf LS", missing_art, delta="-Warnung", delta_color="inverse")
 
     # --- CRITICAL SECTION ---
-    df_missing = df_results[df_results['Handlung'].str.contains("NICHT GELIEFERT", na=False)]
+    df_missing = df_results[df_results["Handlung"].str.contains("NICHT GELIEFERT", na=False)]
     
     total_loss = 0.0
     if not df_missing.empty:
