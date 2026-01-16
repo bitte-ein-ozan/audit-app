@@ -14,6 +14,35 @@ st.set_page_config(page_title="Breer Audit Cockpit", page_icon="🛡️", layout
 
 st.markdown("""
 <style>
+    /* MOBILE OPTIMIZATION */
+    @media (max-width: 768px) {
+        /* Header Stack */
+        .header-container {
+            flex-direction: column;
+            text-align: center;
+            gap: 15px;
+            padding: 1.5rem;
+        }
+        .header-container {
+            border-left: none;
+            border-top: 5px solid #004e92;
+        }
+        
+        /* Adjust Fonts */
+        .header-text h1 { font-size: 1.8rem; }
+        .header-text p { font-size: 0.9rem; }
+        
+        /* Stack Metrics vertically if needed, Streamlit does this mostly auto, but we ensure card look */
+        div[data-testid="stMetric"] {
+            margin-bottom: 10px;
+        }
+        
+        /* File Uploaders spacing */
+        .stFileUploader {
+            margin-bottom: 15px;
+        }
+    }
+
     .stApp { background-color: #F4F6F9; font-family: 'Segoe UI', sans-serif; }
     .header-container {
         background-color: #FFFFFF; padding: 1.5rem 2rem; border-radius: 10px;
