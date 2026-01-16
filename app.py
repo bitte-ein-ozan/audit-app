@@ -170,7 +170,7 @@ if st.session_state.audit_results is not None:
     
     with dc2:
         # Metrics
-        m1, m2, m3 = st.columns(3)
+        m1, m2, m3, m4 = st.columns(4)
         m1.metric("Gesamt-Positionen", len(df))
         m2.metric("Kritische Fehler", err_count, delta="Action" if err_count > 0 else "Clean", delta_color="inverse")
         m3.metric("Risiko-Wert", f"€ {risk:,.2f}", delta="Verlust" if risk > 0 else None, delta_color="inverse")
