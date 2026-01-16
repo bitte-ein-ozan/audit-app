@@ -10,7 +10,6 @@ from modules.parser import InvoiceParser
 from modules.pdf_generator import generate_audit_pdf
 import plotly.express as px
 
-# --- CONFIG & CSS ---
 st.set_page_config(page_title="Breer Audit Cockpit", page_icon="🛡️", layout="wide", initial_sidebar_state="collapsed")
 
 st.markdown("""
@@ -35,7 +34,6 @@ from pathlib import Path
 env_path = Path(__file__).parent / ".env"
 load_dotenv(dotenv_path=env_path, override=True)
 
-# --- HEADER ---
 st.markdown(f"""
     <div class="header-container">
         <div class="header-logo">
@@ -55,18 +53,17 @@ if not azure_api_key or not azure_endpoint:
     st.error("⚠️ API Credentials fehlen.")
     st.stop()
 
-# --- UPLOAD ---
 st.markdown("### 📂 Dokumente")
 cols = st.columns(3)
 with cols[0]: uploaded_invoice = st.file_uploader("Rechnung", type=["pdf"], key="inv", label_visibility="collapsed")
-with cols[1]: uploaded_delivery = st.file_uploader("Lieferscheine", type=["pdf"], key="del", accept_multiple_files=True, label_visibility="collapsed")
-with cols[2]: uploaded_pricelist = st.file_uploader("Preisliste", type=["xlsx"], key="price", accept_multiple_files=True, label_visibility="collapsed")
+with cols[1]: uploaded_delivery = st.file_uploader("Lieferscheine (Optional)", type=["pdf"], key="del", accept_multiple_files=True, label_visibility="collapsed")
+with cols[2]: uploaded_pricelist = st.file_uploader("Preisliste (Optional)", type=["xlsx"], key="price", accept_multiple_files=True, label_visibility="collapsed")
 
 st.markdown("---")
 b1, b2, b3 = st.columns([3, 1, 1])
+# Enabled if Invoice is present
 with b3: start_btn = st.button("Starten ➤", type="primary", use_container_width=True, disabled=not uploaded_invoice)
 
-# --- LOGIC ---
 if "audit_results" not in st.session_state: st.session_state.audit_results = None
 if "audit_total_loss" not in st.session_state: st.session_state.audit_total_loss = 0.0
 
@@ -76,34 +73,40 @@ if start_btn:
         st.write("📑 Lese Rechnung...")
         df_invoice = parser.parse_pdf(uploaded_invoice)
         
-        st.write("📦 Lese Lieferscheine...")
         delivery_text = ""
         if uploaded_delivery:
+            st.write("📦 Lese Lieferscheine...")
             for f in uploaded_delivery: delivery_text += extract_text_from_pdf(f)
-            
-        st.write("⚖️ Prüfe Abgleich...")
+        else:
+            st.write("ℹ️ Keine Lieferscheine - überspringe Mengenabgleich.")
+
+        st.write("⚖️ Prüfe Daten...")
         results = []
         for index, row in df_invoice.iterrows():
             ls_nr = str(row.get("Rechnung LS-Nr", ""))
             art_nr = str(row.get("Artikel-Nr", ""))
-            status = "✅ OK"
-            if not ls_nr or ls_nr == "UNKNOWN": status = "⚠️ LS-Nr fehlt"
-            elif uploaded_delivery and ls_nr not in delivery_text: status = "❌ Kein Lieferschein"
-            elif uploaded_delivery and art_nr not in delivery_text: status = "❓ Artikel fehlt"
+            
+            status_list = []
+            
+            # Logic: Only check if docs are present
+            if uploaded_delivery:
+                if not ls_nr or ls_nr == "UNKNOWN": status_list.append("⚠️ LS-Nr fehlt")
+                elif ls_nr not in delivery_text: status_list.append("❌ Kein Lieferschein")
+                elif art_nr not in delivery_text: status_list.append("❓ Artikel fehlt auf LS")
             
             try:
-                if float(row.get("Menge", 0).replace(',','.')) == 0: status = "ℹ️ Menge 0"
+                if float(row.get("Menge", 0).replace(',','.')) == 0: status_list.append("ℹ️ Menge 0")
             except: pass
+            
+            if not status_list: status = "✅ OK"
+            else: status = " | ".join(status_list)
             
             row["Handlung"] = status
             results.append(row)
             
         st.session_state.audit_results = pd.DataFrame(results)
         st.success("✅ Prüfung erfolgreich abgeschlossen!")
-        # status.update removed for compatibility
-        pass
 
-# --- DASHBOARD ---
 if st.session_state.audit_results is not None:
     df = st.session_state.audit_results
     st.markdown("<br>### 📊 Prüfergebnis", unsafe_allow_html=True)
@@ -111,7 +114,7 @@ if st.session_state.audit_results is not None:
     err_count = len(df[df["Handlung"].str.contains("Kein|fehlt", case=False)])
     risk = 0.0
     try:
-        df_err = df[df["Handlung"].str.contains("Kein|fehlt", case=False)].copy()
+        df_err = df[df["Handlung"].str.contains("Kein Lieferschein", case=False)].copy()
         if not df_err.empty:
             df_err['V'] = df_err['Preis_Gesamt'].astype(str).str.replace('.','').str.replace(',','.').astype(float)
             risk = df_err['V'].sum()
