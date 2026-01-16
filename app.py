@@ -99,7 +99,9 @@ if start_btn:
             results.append(row)
             
         st.session_state.audit_results = pd.DataFrame(results)
-        status.update(label="✅ Fertig!", state="complete", expanded=False)
+        st.success("✅ Prüfung erfolgreich abgeschlossen!")
+        # status.update removed for compatibility
+        pass
 
 # --- DASHBOARD ---
 if st.session_state.audit_results is not None:
