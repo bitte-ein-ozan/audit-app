@@ -58,7 +58,7 @@ load_dotenv(dotenv_path=env_path, override=True)
 # --- HEADER WITH LOGO ---
 c_head1, c_head2 = st.columns([1, 3])
 with c_head1:
-    logo_path = "assets/breer_logo.svg"
+    logo_path = "assets/logo.svg"
     if not os.path.exists(logo_path):
         # Try finding relative to current file if started differently
         logo_path = os.path.join(os.path.dirname(__file__), "assets/breer_logo.svg")
