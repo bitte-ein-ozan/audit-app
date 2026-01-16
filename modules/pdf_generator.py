@@ -5,15 +5,26 @@ from datetime import datetime
 
 class AuditPDF(FPDF):
     def header(self):
-        # Header without image (to be safe and clean)
+        # Logo Logic
+        # Try to find the PNG logo
+        logo_path = "assets/breer_logo.png"
+        if not os.path.exists(logo_path):
+             logo_path = os.path.join(os.path.dirname(__file__), "../assets/breer_logo.png")
+        
+        if os.path.exists(logo_path):
+            # Image(path, x, y, w)
+            self.image(logo_path, 10, 8, 40)
+            self.ln(15) # Move cursor down after logo
+        
+        # Header Text (Title)
         self.set_font('Arial', 'B', 15)
-        # Colors: Breer Blue approx #1e3d59
         self.set_text_color(30, 61, 89)
-        self.cell(0, 10, 'BREER AUDIT REPORT', 0, 1, 'L')
+        # Move Title to the right if logo exists, or center/left
+        self.cell(0, 10, 'BREER AUDIT REPORT', 0, 1, 'R') # Right aligned title
         
         self.set_font('Arial', 'I', 10)
         self.set_text_color(100, 100, 100)
-        self.cell(0, 10, f'Erstellt am: {datetime.now().strftime("%d.%m.%Y %H:%M")}', 0, 1, 'L')
+        self.cell(0, 10, f'Erstellt am: {datetime.now().strftime("%d.%m.%Y %H:%M")}', 0, 1, 'R')
         self.ln(5)
 
     def footer(self):
