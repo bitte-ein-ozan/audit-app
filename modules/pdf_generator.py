@@ -3,6 +3,19 @@ import pandas as pd
 import os
 from datetime import datetime
 
+def sanitize(text):
+    if not isinstance(text, str):
+        text = str(text)
+    # Replace common issues
+    text = text.replace('€', 'EUR')
+    text = text.replace('–', '-') # En-dash
+    text = text.replace('’', "'")
+    text = text.replace('“', '"').replace('”', '"')
+    
+    # Encode to latin-1, replacing errors with '?'
+    return text.encode('latin-1', 'replace').decode('latin-1')
+
+
 class AuditPDF(FPDF):
     def header(self):
         # Logo Logic
@@ -84,16 +97,16 @@ def generate_audit_pdf(df_results, total_loss):
             pdf.set_text_color(0) # Black
 
         # Data
-        art = str(row.get('Artikel-Nr', ''))[:12]
-        bez = str(row.get('Bezeichnung', ''))[:35]
-        menge = str(row.get('Menge', ''))
-        preis = str(row.get('Preis_Gesamt', ''))
+        art = sanitize(str(row.get('Artikel-Nr', ''))[:12])
+        bez = sanitize(str(row.get('Bezeichnung', ''))[:35])
+        menge = sanitize(str(row.get('Menge', '')))
+        preis = sanitize(str(row.get('Preis_Gesamt', '')))
         
         pdf.cell(w[0], 6, art, 1)
         pdf.cell(w[1], 6, bez, 1)
         pdf.cell(w[2], 6, menge, 1, 0, 'R')
         pdf.cell(w[3], 6, preis, 1, 0, 'R')
-        pdf.cell(w[4], 6, status[:40], 1)
+        pdf.cell(w[4], 6, sanitize(status[:40]), 1)
         pdf.ln()
 
     # Output
