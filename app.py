@@ -28,16 +28,14 @@ st.markdown("""
         font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
     }
     
-    /* Header Area */
-    .header-container {
+    /* Header Area - Clean White Bar */
+    .header-wrapper {
         background-color: white;
-        padding: 1.5rem 2rem;
+        padding: 20px 40px;
         border-radius: 12px;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-        margin-bottom: 2rem;
-        display: flex;
-        align-items: center;
-        border-bottom: 3px solid #004e92; /* Breer Accent */
+        box-shadow: 0 4px 20px rgba(0,0,0,0.03);
+        margin-bottom: 30px;
+        border-left: 6px solid #004e92; /* Breer Accent */
     }
     
     h1 {
@@ -46,19 +44,11 @@ st.markdown("""
         font-weight: 700;
         margin: 0 !important;
         padding: 0 !important;
+        line-height: 1.1;
     }
     
     h3, h4, h5 {
         color: #002B5B;
-    }
-
-    /* Cards */
-    div.stContainer {
-        background-color: white;
-        border-radius: 12px;
-        padding: 20px;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-        margin-bottom: 20px;
     }
 
     /* Primary Button (The Breer Blue) */
@@ -84,20 +74,12 @@ st.markdown("""
         border-left: 4px solid #004e92;
         box-shadow: 0 2px 5px rgba(0,0,0,0.05);
     }
-    div[data-testid="stMetricLabel"] {
-        color: #666;
-        font-size: 0.9rem;
-    }
-    div[data-testid="stMetricValue"] {
-        color: #002B5B;
-        font-weight: 700;
-    }
-
+    
     /* File Uploader */
     .stFileUploader {
-        padding: 10px;
+        padding: 15px;
         border-radius: 8px;
-        background: #f8f9fa;
+        background: #FFFFFF;
         border: 1px dashed #ced4da;
     }
 </style>
@@ -109,30 +91,32 @@ env_path = Path(__file__).parent / ".env"
 load_dotenv(dotenv_path=env_path, override=True)
 
 # -----------------------------------------------------------------------------
-# 2. HEADER SECTION
+# 2. HEADER SECTION (Flexbox-like Layout via Columns)
 # -----------------------------------------------------------------------------
 
-# Use a clean container for the header
+# Use a visual container
 with st.container():
-    # Grid Layout: Logo | Title
-    c1, c2 = st.columns([1, 6])
+    # Layout: [Logo (Small)] [Title (Big)] 
+    # Ratio 1:5 puts logo nicely on left, not floating far away
+    col_logo, col_text = st.columns([1, 6]) 
     
-    with c1:
-        # Load the blue logo
+    with col_logo:
+        # Logo Logic
         logo_path = "assets/logo.svg" 
-        if not os.path.exists(logo_path):
-             logo_path = "assets/breer_logo.svg" # Fallback
+        if not os.path.exists(logo_path): logo_path = "assets/breer_logo.svg"
         
         if os.path.exists(logo_path):
-            st.image(logo_path, width=130)
+            # Center image in column
+            st.image(logo_path, width=140)
         else:
-            st.markdown("## 🛡️") # Emoji fallback
+            st.write("🛡️")
 
-    with c2:
+    with col_text:
+        # Title Text - pushed down slightly to align with logo center
         st.markdown("""
-            <div style='padding-top: 10px;'>
-                <h1 style='font-size: 2.4rem;'>Audit Cockpit</h1>
-                <p style='color: #666; font-size: 1.1rem; margin-top: 5px;'>
+            <div style='padding-top: 15px; padding-left: 10px;'>
+                <h1 style='font-size: 2.6rem;'>Audit Cockpit</h1>
+                <p style='color: #555; font-size: 1.1rem; margin-top: 4px; font-weight: 400;'>
                     Automatisierte Rechnungs- & Lieferscheinprüfung
                 </p>
             </div>
@@ -151,31 +135,29 @@ if not azure_api_key or not azure_endpoint:
 # 3. WORKSPACE (Uploads)
 # -----------------------------------------------------------------------------
 
-# Create a visual 'Card' for uploads
-with st.container():
-    st.markdown("### 📂 Dokumente hochladen")
-    
-    cols = st.columns(3)
-    
-    with cols[0]:
-        st.markdown("**1. Rechnung** (PDF)")
-        uploaded_invoice = st.file_uploader("Rechnung", type=["pdf"], key="inv", label_visibility="collapsed")
-    
-    with cols[1]:
-        st.markdown("**2. Lieferscheine** (PDF)")
-        uploaded_delivery = st.file_uploader("Lieferscheine", type=["pdf"], key="del", accept_multiple_files=True, label_visibility="collapsed")
-    
-    with cols[2]:
-        st.markdown("**3. Preisliste** (Excel)")
-        uploaded_pricelist = st.file_uploader("Preisliste", type=["xlsx"], key="price", accept_multiple_files=True, label_visibility="collapsed")
+st.markdown("### 📂 Dokumente")
 
-    # Action Bar
-    st.markdown("---")
-    
-    # Align button right
-    b1, b2, b3 = st.columns([3, 1, 1])
-    with b3:
-        start_btn = st.button("Prüfung starten ➤", type="primary", use_container_width=True, disabled=not uploaded_invoice)
+cols = st.columns(3)
+
+with cols[0]:
+    st.markdown("**1. Rechnung** (PDF)")
+    uploaded_invoice = st.file_uploader("Rechnung", type=["pdf"], key="inv", label_visibility="collapsed")
+
+with cols[1]:
+    st.markdown("**2. Lieferscheine** (PDF)")
+    uploaded_delivery = st.file_uploader("Lieferscheine", type=["pdf"], key="del", accept_multiple_files=True, label_visibility="collapsed")
+
+with cols[2]:
+    st.markdown("**3. Preisliste** (Excel)")
+    uploaded_pricelist = st.file_uploader("Preisliste", type=["xlsx"], key="price", accept_multiple_files=True, label_visibility="collapsed")
+
+# Action Bar
+st.markdown("---")
+
+# Align button right
+b1, b2, b3 = st.columns([3, 1, 1])
+with b3:
+    start_btn = st.button("Starten ➤", type="primary", use_container_width=True, disabled=not uploaded_invoice)
 
 # -----------------------------------------------------------------------------
 # 4. LOGIC
