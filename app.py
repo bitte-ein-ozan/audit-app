@@ -56,7 +56,7 @@ env_path = Path(__file__).parent / ".env"
 load_dotenv(dotenv_path=env_path, override=True)
 
 # --- HEADER WITH LOGO ---
-c_head1, c_head2 = st.columns([1, 3])
+c_head1, c_head2 = st.columns([1, 6])
 with c_head1:
     logo_path = "assets/logo.svg"
     if not os.path.exists(logo_path):
@@ -64,7 +64,7 @@ with c_head1:
         logo_path = os.path.join(os.path.dirname(__file__), "assets/breer_logo.svg")
     
     if os.path.exists(logo_path):
-        st.image(logo_path, width=200)
+        st.image(logo_path, width=120)
     else:
         st.write("🛡️") 
 
