@@ -84,9 +84,12 @@ if not azure_api_key or not azure_endpoint:
 
 st.markdown("### 📂 Dokumente")
 cols = st.columns(3)
-with cols[0]: uploaded_invoice = st.file_uploader("Rechnung", type=["pdf"], key="inv", label_visibility="collapsed")
-with cols[1]: uploaded_delivery = st.file_uploader("Lieferscheine (Optional)", type=["pdf"], key="del", accept_multiple_files=True, label_visibility="collapsed")
-with cols[2]: uploaded_pricelist = st.file_uploader("Preisliste (Optional)", type=["xlsx"], key="price", accept_multiple_files=True, label_visibility="collapsed")
+with cols[0]: st.caption("📄 Die zu prüfende Rechnung (Lieferant)")
+    uploaded_invoice = st.file_uploader("Rechnung", type=["pdf"], key="inv", label_visibility="collapsed")
+with cols[1]: st.caption("📦 Zugehörige Lieferscheine (Scan/PDF)")
+    uploaded_delivery = st.file_uploader("Lieferscheine (Optional)", type=["pdf"], key="del", accept_multiple_files=True, label_visibility="collapsed")
+with cols[2]: st.caption("💰 Vereinbarte Preise (Excel oder PDF)")
+    uploaded_pricelist = st.file_uploader("Preisliste (Optional)", type=["xlsx", "pdf"], key="price", accept_multiple_files=True, label_visibility="collapsed")
 
 st.markdown("---")
 b1, b2, b3 = st.columns([3, 1, 1])
