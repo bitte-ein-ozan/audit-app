@@ -142,7 +142,7 @@ if start_btn:
 # --- DASHBOARD ---
 if st.session_state.audit_results is not None:
     df = st.session_state.audit_results
-    st.markdown("---, unsafe_allow_html=True")
+    st.markdown("---", unsafe_allow_html=True)
     st.markdown("### 📊 Dashboard", unsafe_allow_html=True)
     
     err_count = len(df[df["Handlung"].str.contains("Kein|fehlt", case=False)])
