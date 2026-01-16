@@ -109,4 +109,4 @@ def generate_audit_pdf(df_results, total_loss):
     else:
         pdf.chapter_body("Keine Abweichungen gefunden.")
         
-    return bytes(pdf.output())
+    return pdf.output(dest="S").encode("latin-1")
