@@ -33,7 +33,7 @@ st.markdown("""
     
     /* Step Cards */
     .upload-card {
-        background-color: white;
+        background-color: white !important;
         padding: 20px;
         border-radius: 12px;
         border: 1px solid #E2E8F0;
@@ -45,7 +45,7 @@ st.markdown("""
     /* Buttons */
     .stButton>button {
         background: linear-gradient(135deg, #004e92 0%, #003366 100%);
-        color: white; border-radius: 10px; border: none; padding: 0.8rem 2rem;
+        color: white !important; border-radius: 10px; border: none; padding: 0.8rem 2rem;
         font-weight: 600; letter-spacing: 0.5px; box-shadow: 0 4px 12px rgba(0, 78, 146, 0.3);
         width: 100%; transition: all 0.3s ease;
     }
