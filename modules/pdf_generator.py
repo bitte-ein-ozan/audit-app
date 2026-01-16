@@ -9,7 +9,7 @@ class AuditPDF(FPDF):
         # Try to find the PNG logo
         logo_path = "assets/breer_logo_dark.png"
         if not os.path.exists(logo_path):
-             logo_path = os.path.join(os.path.dirname(__file__), "../assets/breer_logo.png")
+             logo_path = os.path.join(os.path.dirname(__file__), "../assets/logo_blue.png")
         
         if os.path.exists(logo_path):
             # Image(path, x, y, w)

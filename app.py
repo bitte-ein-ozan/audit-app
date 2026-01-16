@@ -107,7 +107,7 @@ with st.container():
         
         if os.path.exists(logo_path):
             # Center image in column
-            st.image(logo_path, width=140)
+            st.image(logo_path, width=180)
         else:
             st.write("🛡️")
 
